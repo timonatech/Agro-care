@@ -21,10 +21,14 @@ const getProductById = async (req, res) => {
   }
 };
 
-// Create product
+// ✅ Create product (supports file upload or image URL)
 const createProduct = async (req, res) => {
-  const { name, description, price, category, image,quantity } = req.body;
   try {
+    const { name, description, price, category, quantity } = req.body;
+
+    // Use uploaded file path if exists, otherwise use image URL from body
+    const image = req.file ? `/uploads/${req.file.filename}` : req.body.image;
+
     const product = await Product.create({
       name,
       description,
@@ -33,8 +37,10 @@ const createProduct = async (req, res) => {
       image,
       quantity,
     });
+
     res.status(201).json(product);
   } catch (error) {
+    console.error("❌ Error creating product:", error);
     res.status(500).json({ message: error.message });
   }
 };
@@ -42,9 +48,17 @@ const createProduct = async (req, res) => {
 // Update product
 const updateProduct = async (req, res) => {
   try {
-    const product = await Product.findByIdAndUpdate(req.params.id, req.body, {
+    const updatedData = req.body;
+
+    // Handle image update if a new file is uploaded
+    if (req.file) {
+      updatedData.image = `/uploads/${req.file.filename}`;
+    }
+
+    const product = await Product.findByIdAndUpdate(req.params.id, updatedData, {
       new: true,
     });
+
     if (!product) return res.status(404).json({ message: "Product not found" });
     res.status(200).json(product);
   } catch (error) {

@@ -1,35 +1,70 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import { Routes, Route } from "react-router-dom";
+import { SignIn, SignUp, SignedIn, SignedOut, RedirectToSignIn } from "@clerk/clerk-react";
 
-function App() {
-  const [count, setCount] = useState(0)
+import Navbar from "./components/Navbar";
+import Home from "./pages/Home";
+import Dashboard from "./pages/Dashboard";
+import Products from "./pages/Products";
+import AddProduct from "./pages/AddProduct";
+import Orders from "./pages/Orders";
 
+export default function App() {
   return (
     <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.jsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
-}
+      <Navbar />
+      <Routes>
+        {/* Public Routes */}
+        <Route path="/" element={<Home />} />
+        <Route path="/sign-in/*" element={<SignIn />} />
+        <Route path="/sign-up/*" element={<SignUp />} />
 
-export default App
+        {/* Protected Routes - Only accessible when signed in */}
+        <Route
+          path="/dashboard"
+          element={
+            <SignedIn>
+              <Dashboard />
+            </SignedIn>
+          }
+        />
+
+        <Route
+          path="/products"
+          element={
+            <SignedIn>
+              <Products />
+            </SignedIn>
+          }
+        />
+
+        <Route
+          path="/add-product"
+          element={
+            <SignedIn>
+              <AddProduct />
+            </SignedIn>
+          }
+        />
+
+        <Route
+          path="/orders"
+          element={
+            <SignedIn>
+              <Orders />
+            </SignedIn>
+          }
+        />
+
+        {/* Redirect if not logged in */}
+        <Route
+          path="/private"
+          element={
+            <SignedOut>
+              <RedirectToSignIn />
+            </SignedOut>
+          }
+        />
+      </Routes>
+    </>
+  );
+}

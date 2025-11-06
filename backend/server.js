@@ -10,6 +10,8 @@ const orderRoutes = require('./routes/orderRoutes.js');
 
 // Load environment variables
 dotenv.config();
+console.log("✅ Loaded PORT:", process.env.PORT);
+console.log("✅ Loaded MONGO_URI:", process.env.MONGO_URI);
 
 // Initialize express app 
 const app = express();
@@ -32,7 +34,7 @@ app.get("/", (req, res) => {
 const startServer = async () => {
   try {
     await connectDB();
-    const PORT = process.env.PORT || 3000;
+    const PORT = process.env.PORT || 5000;
     app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
   } catch (err) {
     console.error('Failed to start server due to DB connection error');
