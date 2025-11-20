@@ -18,50 +18,49 @@ export default function App() {
         <Route path="/sign-in/*" element={<SignIn />} />
         <Route path="/sign-up/*" element={<SignUp />} />
 
-        {/* Protected Routes - Only accessible when signed in */}
+        {/* Products - Public (anyone can browse) */}
+        <Route path="/products" element={<Products />} />
+
+        {/* Protected Routes - Redirect to sign-in if not authenticated */}
         <Route
           path="/dashboard"
           element={
-            <SignedIn>
-              <Dashboard />
-            </SignedIn>
-          }
-        />
-
-        <Route
-          path="/products"
-          element={
-            <SignedIn>
-              <Products />
-            </SignedIn>
+            <>
+              <SignedIn>
+                <Dashboard />
+              </SignedIn>
+              <SignedOut>
+                <RedirectToSignIn />
+              </SignedOut>
+            </>
           }
         />
 
         <Route
           path="/add-product"
           element={
-            <SignedIn>
-              <AddProduct />
-            </SignedIn>
+            <>
+              <SignedIn>
+                <AddProduct />
+              </SignedIn>
+              <SignedOut>
+                <RedirectToSignIn />
+              </SignedOut>
+            </>
           }
         />
 
         <Route
           path="/orders"
           element={
-            <SignedIn>
-              <Orders />
-            </SignedIn>
-          }
-        />
-
-        {/* Redirect if not logged in */}
-        <Route
-          path="/private"
-          element={
-            <SignedOut>
-              <RedirectToSignIn />
-            </SignedOut>
+            <>
+              <SignedIn>
+                <Orders />
+              </SignedIn>
+              <SignedOut>
+                <RedirectToSignIn />
+              </SignedOut>
+            </>
           }
         />
       </Routes>

@@ -1,9 +1,10 @@
 const express = require("express");
-const { registerUser, loginUser } = require("../controllers/authController.js");
+const { requireAuth } = require("@clerk/express");
+const { syncUser } = require("../controllers/authController.js");
 
 const router = express.Router();
 
-router.post("/register", registerUser);
-router.post("/login", loginUser);
+// Protect the sync route
+router.post("/sync", requireAuth(), syncUser);
 
 module.exports = router;

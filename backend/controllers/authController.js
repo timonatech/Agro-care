@@ -1,38 +1,29 @@
-const jwt = require("jsonwebtoken");
 const User = require("../models/user.js");
+const { clerkClient } = require("@clerk/clerk-sdk-node"); // Fixed import
 
-const generateToken = (id) => {
-  return jwt.sign({ id }, process.env.JWT_SECRET, { expiresIn: "7d" });
-};
-
-// Register user
-const registerUser = async (req, res) => {
-  const { name, email, password, role } = req.body;
+// Sync Clerk user to MongoDB
+const syncUser = async (req, res) => {
   try {
-    const userExists = await User.findOne({ email });
-    if (userExists)
-      return res.status(400).json({ message: "User already exists" });
+    const clerkUser = await clerkClient.users.getUser(req.auth.userId); // Fixed usage
 
-    const user = await User.create({ name, email, password, role });
-    res.status(201).json({ token: generateToken(user._id), role: user.role });
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
-};
+    const existingUser = await User.findOne({ clerkId: clerkUser.id });
 
-// Login user
-const loginUser = async (req, res) => {
-  const { email, password } = req.body;
-  try {
-    const user = await User.findOne({ email });
-    if (user && (await user.matchPassword(password))) {
-      res.json({ token: generateToken(user._id), role: user.role });
-    } else {
-      res.status(401).json({ message: "Invalid credentials" });
+    if (existingUser) {
+      return res.status(200).json(existingUser);
     }
+
+    const newUser = await User.create({
+      clerkId: clerkUser.id,
+      name: `${clerkUser.firstName} ${clerkUser.lastName}`,
+      email: clerkUser.emailAddresses[0]?.emailAddress,
+      role: "buyer", // default role
+      image: clerkUser.imageUrl,
+    });
+
+    res.status(201).json(newUser);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 };
 
-module.exports = { registerUser, loginUser };
+module.exports = { syncUser };

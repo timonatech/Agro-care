@@ -2,46 +2,66 @@ const express = require('express');
 const dotenv = require('dotenv');
 const connectDB = require('./config/db.js');
 const cors = require('cors');
+const path = require('path');
+const { requireAuth, clerkMiddleware } = require('@clerk/express'); // Fixed import
+const { clerkClient } = require('@clerk/clerk-sdk-node'); // Fixed import
 
-// Route imports
+dotenv.config();
+
+// Add these debug lines
+console.log("🔑 CLERK_PUBLISHABLE_KEY:", process.env.CLERK_PUBLISHABLE_KEY ? "✅ Found" : "❌ Missing");
+console.log("🔑 CLERK_SECRET_KEY:", process.env.CLERK_SECRET_KEY ? "✅ Found" : "❌ Missing");
+
+const app = express();
+
+app.use(cors());
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));
+
+// Clerk global middleware - FIXED
+app.use(clerkMiddleware());
+
+// Connect to DB
+connectDB();
+
+// Routes
 const authRoutes = require('./routes/authRoutes.js');
 const productRoutes = require('./routes/productRoutes.js');
 const orderRoutes = require('./routes/orderRoutes.js');
 
-// Load environment variables
-dotenv.config();
-console.log("✅ Loaded PORT:", process.env.PORT);
-console.log("✅ Loaded MONGO_URI:", process.env.MONGO_URI);
-
-// Initialize express app 
-const app = express();
-
-// Middleware
-app.use(cors());
-app.use(express.json());
-
-// Routes
 app.use("/api/auth", authRoutes);
 app.use("/api/products", productRoutes);
 app.use("/api/orders", orderRoutes);
 
-// Test route
-app.get("/", (req, res) => {
-  res.send("🌾 Farmer’s Marketplace API is running...");
+// Test protected route
+app.get("/api/auth/verify", requireAuth(), (req, res) => {
+  res.json({
+    message: "🔐 Clerk authentication successful!",
+    userId: req.auth.userId,
+  });
 });
 
-// Start server after DB connection
-const startServer = async () => {
+// Get full Clerk user details - FIXED
+app.get("/api/auth/profile", requireAuth(), async (req, res) => {
   try {
-    await connectDB();
-    const PORT = process.env.PORT || 5000;
-    app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
-  } catch (err) {
-    console.error('Failed to start server due to DB connection error');
+    const user = await clerkClient.users.getUser(req.auth.userId);
+    res.json({
+      id: user.id,
+      name: `${user.firstName} ${user.lastName}`,
+      email: user.emailAddresses[0]?.emailAddress,
+      image: user.imageUrl,
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
   }
-};
+});
 
-startServer();
+app.get("/", (req, res) => {
+  res.send("🌾 Farmer's Marketplace API is running...");
+});
 
-// Export app for testing
+const PORT = process.env.PORT || 5000;
+app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
+
 module.exports = app;

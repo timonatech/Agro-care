@@ -1,56 +1,72 @@
 import { SignedIn, SignedOut, UserButton, SignInButton } from "@clerk/clerk-react";
 import { Link } from "react-router-dom";
+import { useState } from "react";
+import "./Navbar.css";
 
 export default function Navbar() {
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+
+  const toggleMenu = () => {
+    setIsMenuOpen(!isMenuOpen);
+  };
+
+  const closeMenu = () => {
+    setIsMenuOpen(false);
+  };
+
   return (
-    <nav
-      style={{
-        padding: "1rem",
-        background: "#eef",
-        display: "flex",
-        justifyContent: "space-between",
-        alignItems: "center",
-      }}
-    >
-      {/* Logo */}
-      <h3 style={{ margin: 0 }}>🌾 Farmer’s Marketplace</h3>
+    <nav className="navbar">
+      <div className="navbar-container">
+        {/* Logo */}
+        <Link to="/" className="navbar-logo" onClick={closeMenu}>
+          🌾 AgriSoko
+        </Link>
 
-      {/* Navigation links */}
-      <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
-        <Link to="/" style={linkStyle}>Home</Link>
+        {/* Hamburger Menu (Mobile) */}
+        <button 
+          className={`hamburger ${isMenuOpen ? 'active' : ''}`}
+          onClick={toggleMenu}
+          aria-label="Toggle menu"
+        >
+          <span></span>
+          <span></span>
+          <span></span>
+        </button>
 
-        <SignedIn>
-          <Link to="/dashboard" style={linkStyle}>Dashboard</Link>
-          <Link to="/products" style={linkStyle}>Products</Link>
-          <Link to="/add-product" style={linkStyle}>Add Product</Link>
-          <Link to="/orders" style={linkStyle}>Orders</Link>
-          <UserButton afterSignOutUrl="/" />
-        </SignedIn>
+        {/* Navigation Links */}
+        <div className={`nav-menu ${isMenuOpen ? 'active' : ''}`}>
+          <Link to="/" className="nav-link" onClick={closeMenu}>
+             Home
+          </Link>
 
-        <SignedOut>
-          <SignInButton mode="modal">
-            <button style={buttonStyle}>Sign In</button>
-          </SignInButton>
-        </SignedOut>
+          <SignedIn>
+            <Link to="/dashboard" className="nav-link" onClick={closeMenu}>
+               Dashboard
+            </Link>
+            <Link to="/products" className="nav-link" onClick={closeMenu}>
+               Products
+            </Link>
+            <Link to="/add-product" className="nav-link" onClick={closeMenu}>
+               Add Product
+            </Link>
+            <Link to="/orders" className="nav-link" onClick={closeMenu}>
+               Orders
+            </Link>
+            
+            <div className="user-button-wrapper">
+              <UserButton afterSignOutUrl="/" />
+            </div>
+          </SignedIn>
+
+          <SignedOut>
+            <SignInButton mode="modal">
+              <button className="sign-in-button">
+                 Sign In
+              </button>
+            </SignInButton>
+          </SignedOut>
+        </div>
       </div>
     </nav>
   );
 }
-
-// simple link styling
-const linkStyle = {
-  textDecoration: "none",
-  color: "#333",
-  fontWeight: "500",
-  fontSize: "1rem",
-};
-
-// simple button styling
-const buttonStyle = {
-  backgroundColor: "#4CAF50",
-  color: "#fff",
-  border: "none",
-  borderRadius: "5px",
-  padding: "0.4rem 0.8rem",
-  cursor: "pointer",
-};

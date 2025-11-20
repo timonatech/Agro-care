@@ -1,4 +1,7 @@
 const express = require("express");
+const router = express.Router();
+const { requireAuth } = require("@clerk/express");
+
 const {
   createOrder,
   getUserOrders,
@@ -7,21 +10,16 @@ const {
   deleteOrder
 } = require("../controllers/orderController.js");
 
-const router = express.Router();
+// Debug: Log when routes are registered
+console.log("📋 Registering order routes...");
 
-// POST create new order
-router.post("/", createOrder);
+// Protected routes
+router.post("/", requireAuth(), createOrder);
+router.get("/user", requireAuth(), getUserOrders);
+router.get("/", requireAuth(), getAllOrders);
+router.put("/:id", requireAuth(), updateOrderStatus);
+router.delete("/:id", requireAuth(), deleteOrder);
 
-// GET all orders (admin)
-router.get("/", getAllOrders);
-
-// GET orders for a specific user
-router.get("/user/:userId", getUserOrders);
-
-// PUT update order status
-router.put("/:id", updateOrderStatus);
-
-// DELETE cancel or remove an order
-router.delete("/:id", deleteOrder);
+console.log("✅ Order routes registered");
 
 module.exports = router;
